@@ -2,7 +2,6 @@ import { config } from "./config/config";
 import { startEventListeners } from "./onchain/listener";
 import { generateNewLevel } from "./gameMaster/openaiService";
 import { sendAddLevel } from "./onchain/txSender";
-import { startApiServer } from "./api/server";
 import { writeToNodes } from "./nillion";
 
 // Add fantasy themes for level generation
@@ -56,11 +55,9 @@ async function startLevelGenerationScheduler() {
 
 console.log("Starting Fantasy Game Master Agent...");
 console.log(`Using contract address: ${config.contractAddress}`);
-console.log(`Database path: ${config.database.path}`);
 
 try {
     startEventListeners();
-    startApiServer();
     // startLevelGenerationScheduler();
     console.log("📡 Event listeners started successfully");
     console.log("⏰ Level generation scheduler initialized");

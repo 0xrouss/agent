@@ -38,3 +38,25 @@ export async function getLevelDescription(uuid) {
 
     return decryptedCollectionData[0].description;
 }
+
+export async function getLevelsByDifficulty(difficulty) {
+    const collection = await getCollection();
+
+    // Get all levels from the collection
+    const allLevels = await collection.readFromNodes({});
+
+    // Filter levels by difficulty and map to return just the level IDs
+    return allLevels
+        .filter(level => Number(level.difficulty) === difficulty)
+        .map(level => level._id);
+}
+
+export async function getRandomLevelByDifficulty(difficulty) {
+    const allLevels = await getLevelsByDifficulty(difficulty);
+    if (allLevels.length === 0) {
+        throw new Error(`No levels found with difficulty: ${difficulty}`);
+    }
+    const randomLevelIndex = Math.floor(Math.random() * allLevels.length);
+    const randomLevelId = allLevels[randomLevelIndex];
+    return randomLevelId;
+}

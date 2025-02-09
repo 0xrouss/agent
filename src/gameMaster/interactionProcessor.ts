@@ -1,16 +1,8 @@
 // src/gameMaster/interactionProcessor.ts
 import { evaluateLevelAnswer } from "./openaiService";
 import { sendUpdateInteraction, sendAssignLevel } from "../onchain/txSender";
-import {
-    markAssignedLevelCompleted,
-    insertInteraction,
-    getLevelNillionUUID,
-    getRandomLevelByDifficulty,
-    insertAssignedLevel,
-    incrementLevelsAssigned,
-    finalizeGame,
-} from "../database/queries";
-import { getLevelDescription } from "../nillion";
+import { getLevelDescription, getRandomLevelByDifficulty } from "../nillion";
+import { getLastAssignedLevelNillionUUID } from "../onchain/contract"; // Import the new function
 
 /**
  * Processes an interaction event:
@@ -18,7 +10,6 @@ import { getLevelDescription } from "../nillion";
  *  - Calls the OpenAI API to get the outcome.
  *  - Parses the AI response.
  *  - Submits a transaction to update the interaction on-chain.
- *  - Updates the local database accordingly.
  *
  * @param interaction The interaction event data.
  */
@@ -32,8 +23,8 @@ export async function handleInteraction(interaction: {
     try {
         console.log(`Processing interaction ${interaction.interactionId} for player ${interaction.player}...`);
 
-        // Fetch the level description
-        const nillionUUID = await getLevelNillionUUID(interaction.gameId);
+        // Fetch the level description using the new function
+        const nillionUUID = await getLastAssignedLevelNillionUUID(interaction.gameId);
         const levelDescription = await getLevelDescription(nillionUUID);
 
         // Evaluate the player's answer using OpenAI
@@ -42,38 +33,21 @@ export async function handleInteraction(interaction: {
         // Log the evaluation result
         console.log(`Evaluation result for interaction ${interaction.interactionId}:`, evaluationResult);
 
-        // Insert the interaction into the database
-        insertInteraction(
-            interaction.gameId,
-            interaction.interactionId,
-            interaction.assignedLevelIndex,
-            interaction.action,
-            evaluationResult.reason,
-            evaluationResult.passed
-        );
-
         // Update the game state based on the evaluation
         if (evaluationResult.passed) {
             console.log(`Player ${interaction.player} passed the level!`);
 
-            // Mark completed and update interaction
-            await markAssignedLevelCompleted(interaction.gameId);
+            // Update interaction
             await sendUpdateInteraction(interaction.gameId, interaction.interactionId, true, evaluationResult.reason);
 
             // Check for game completion (level 10 passed)
-            if (interaction.assignedLevelIndex === 9) {
-                // Finalize the game
-                await finalizeGame(interaction.gameId);
-                console.log(`Game ${interaction.gameId} completed successfully!`);
-            } else {
+            if (interaction.assignedLevelIndex !== 9) {
                 // Calculate next difficulty and assign level
                 const nextDifficulty = interaction.assignedLevelIndex + 2;
                 const nextLevelId = await getRandomLevelByDifficulty(nextDifficulty);
 
-                // Update both chain and local state
+                // Update chain
                 await sendAssignLevel(interaction.gameId, nextLevelId);
-                insertAssignedLevel(interaction.gameId, nextLevelId);
-                incrementLevelsAssigned(interaction.gameId);
 
                 console.log(`Assigned level ${nextLevelId} (difficulty ${nextDifficulty}) to game ${interaction.gameId}`);
             }

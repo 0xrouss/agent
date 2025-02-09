@@ -20,10 +20,6 @@ export interface Config {
         // Maximum tokens for completions
         maxTokens: number;
     };
-    database: {
-        // Path to the local Bun SQLite database file
-        path: string;
-    };
     api: {
         port?: number;
     };
@@ -54,9 +50,6 @@ export const config: Config = {
         model: process.env.OPENAI_MODEL || "deepseek-chat",
         temperature: parseFloat(process.env.OPENAI_TEMPERATURE || "0.7"),
         maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS || "500", 10),
-    },
-    database: {
-        path: process.env.DATABASE_PATH || "localGameMaster.db",
     },
     api: {
         port: process.env.API_PORT ? parseInt(process.env.API_PORT) : undefined,
