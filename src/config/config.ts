@@ -27,22 +27,17 @@ export interface Config {
     api: {
         port?: number;
     };
+    privy: {
+        appId: string;
+        appSecret: string;
+        walletId: string;
+        walletAddress: Address;
+    };
 }
 
 /**
  * Central configuration object. Values are read from environment variables,
  * with defaults provided for development.
- *
- * Make sure to create a .env file at the root of your project with keys like:
- *   NODE_URL=...
- *   CHAIN=...
- *   CONTRACT_ADDRESS=...
- *   GAME_MASTER_PRIVATE_KEY=...
- *   OPENAI_API_KEY=...
- *   OPENAI_MODEL=text-davinci-003
- *   OPENAI_TEMPERATURE=0.7
- *   OPENAI_MAX_TOKENS=150
- *   DATABASE_PATH=localGameMaster.db
  */
 export const config: Config = {
     contractAddress: (process.env.CONTRACT_ADDRESS as Address) || "0xYourContractAddress",
@@ -59,5 +54,11 @@ export const config: Config = {
     },
     api: {
         port: process.env.API_PORT ? parseInt(process.env.API_PORT) : undefined,
+    },
+    privy: {
+        appId: process.env.APP_ID || "appId",
+        appSecret: process.env.APP_SECRET || "appSecret",
+        walletId: process.env.WALLET_ID || "walletId",
+        walletAddress: (process.env.WALLET_ADDRESS as Address) || "0xAddress",
     },
 };

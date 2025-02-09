@@ -4,6 +4,8 @@ import { config } from "../config/config";
 import { FantasyGameMasterABI } from "../ABI/FantasyGameMaster";
 import { privateKeyToAccount } from "viem/accounts";
 import { createNonceManager, jsonRpc } from "viem/nonce";
+import { PrivyClient } from "@privy-io/server-auth";
+import { createViemAccount } from "@privy-io/server-auth/viem";
 
 // Export the smart contract address (read from your config)
 export const FANTASY_GAME_MASTER_ADDRESS = config.contractAddress;
@@ -12,7 +14,15 @@ const nonceManager = createNonceManager({
     source: jsonRpc(),
 });
 
-const account = privateKeyToAccount(config.gameMasterPrivateKey, { nonceManager });
+const privy = new PrivyClient(config.privy.appId, config.privy.appSecret);
+
+const account = await createViemAccount({
+    walletId: config.privy.walletId,
+    address: config.privy.walletAddress,
+    privy,
+});
+
+account.nonceManager = nonceManager;
 
 // Create a wallet client to send transactions (using the game master's private key)
 export const walletClient = createWalletClient({
