@@ -8,7 +8,7 @@ const db = new Database(config.database.path);
 db.run(`
     CREATE TABLE IF NOT EXISTS levels (
         id INTEGER PRIMARY KEY,
-        description TEXT,
+        nillionUUID TEXT,
         difficulty INTEGER
     );
 `);

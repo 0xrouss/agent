@@ -155,7 +155,7 @@ export const FantasyGameMasterABI: Abi = [
             {
                 indexed: false,
                 internalType: "string",
-                name: "description",
+                name: "nillionUUID",
                 type: "string",
             },
             {
@@ -172,7 +172,7 @@ export const FantasyGameMasterABI: Abi = [
         inputs: [
             {
                 internalType: "string",
-                name: "_description",
+                name: "_nillionUUID",
                 type: "string",
             },
             {
@@ -492,7 +492,7 @@ export const FantasyGameMasterABI: Abi = [
         outputs: [
             {
                 internalType: "string",
-                name: "description",
+                name: "nillionUUID",
                 type: "string",
             },
             {
@@ -520,6 +520,35 @@ export const FantasyGameMasterABI: Abi = [
     {
         inputs: [
             {
+                internalType: "address",
+                name: "_player",
+                type: "address",
+            },
+        ],
+        name: "getPlayerGames",
+        outputs: [
+            {
+                internalType: "uint256[]",
+                name: "gameIds",
+                type: "uint256[]",
+            },
+            {
+                internalType: "bool[]",
+                name: "isActive",
+                type: "bool[]",
+            },
+            {
+                internalType: "uint256[]",
+                name: "levelsAssigned",
+                type: "uint256[]",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
                 internalType: "uint256",
                 name: "",
                 type: "uint256",
@@ -529,7 +558,7 @@ export const FantasyGameMasterABI: Abi = [
         outputs: [
             {
                 internalType: "string",
-                name: "description",
+                name: "nillionUUID",
                 type: "string",
             },
             {

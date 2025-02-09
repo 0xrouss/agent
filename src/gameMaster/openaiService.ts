@@ -75,7 +75,7 @@ export async function evaluateLevelAnswer(levelNumber: number, levelDescription:
  * Generates a new game level using AI based on theme and difficulty
  * Returns structured level data { levelDescription: string, difficulty: number }
  */
-export async function generateNewLevel(theme: string, baseDifficulty: number): Promise<{ levelDescription: string; difficulty: number }> {
+export async function generateNewLevel(theme: string, baseDifficulty: number): Promise<{ levelDescription: string; levelDifficulty: number }> {
     const systemMessage = `You are a fantasy game designer. Create engaging levels with:
     - Vivid environmental details
     - Unique challenges (puzzles, enemies, traps)
@@ -122,7 +122,7 @@ export async function generateNewLevel(theme: string, baseDifficulty: number): P
 
         return {
             levelDescription: result.levelDescription,
-            difficulty: clampedDifficulty,
+            levelDifficulty: clampedDifficulty,
         };
     } catch (error) {
         console.error("Level generation error:", error);

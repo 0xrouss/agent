@@ -3,15 +3,15 @@ import { updateInteractionOnchain, assignLevelOnchain, addLevelOnchain } from ".
 
 /**
  * Sends a transaction to update an interaction on-chain.
- * @param partidaId - The ID of the partida (game session)
- * @param interactionId - The unique interaction ID within the partida
+ * @param gameId - The ID of the game
+ * @param interactionId - The unique interaction ID within the game
  * @param levelPassed - Indicates if the player passed the level
  * @param result - Narrative result from the AI
  * @returns The transaction hash as a string
  */
-export async function sendUpdateInteraction(partidaId: number, interactionId: number, levelPassed: boolean, result: string): Promise<string> {
+export async function sendUpdateInteraction(gameId: number, interactionId: number, levelPassed: boolean, result: string): Promise<string> {
     try {
-        const txHash = await updateInteractionOnchain(partidaId, interactionId, levelPassed, result);
+        const txHash = await updateInteractionOnchain(gameId, interactionId, levelPassed, result);
         console.log(`Transaction submitted. Hash: ${txHash}`);
         return txHash;
     } catch (error) {
@@ -39,13 +39,13 @@ export async function sendAssignLevel(gameId: number, levelId: number): Promise<
 
 /**
  * Adds a new level to the game system
- * @param description - Description of the new level
+ * @param nillionUUID - nillionUUID of the new level
  * @param difficulty - Difficulty rating of the level
  * @returns The transaction hash as a string
  */
-export async function sendAddLevel(description: string, difficulty: number): Promise<string> {
+export async function sendAddLevel(nillionUUID: string, difficulty: number): Promise<string> {
     try {
-        const txHash = await addLevelOnchain(description, difficulty);
+        const txHash = await addLevelOnchain(nillionUUID, difficulty);
         console.log(`Add level transaction submitted. Hash: ${txHash}`);
         return txHash;
     } catch (error) {

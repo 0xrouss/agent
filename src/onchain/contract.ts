@@ -32,13 +32,13 @@ export const walletClient = createWalletClient({
 });
 
 // Helper function to call the smart contract's updateInteraction function
-export async function updateInteractionOnchain(partidaId: number, interactionId: number, levelPassed: boolean, result: string): Promise<string> {
+export async function updateInteractionOnchain(gameId: number, interactionId: number, levelPassed: boolean, result: string): Promise<string> {
     try {
         const txHash = await walletClient.writeContract({
             address: FANTASY_GAME_MASTER_ADDRESS,
             abi: FantasyGameMasterABI,
             functionName: "updateInteraction",
-            args: [partidaId, interactionId, levelPassed, result],
+            args: [gameId, interactionId, levelPassed, result],
         });
         return txHash;
     } catch (error) {
@@ -64,13 +64,13 @@ export async function assignLevelOnchain(gameId: number, levelId: number): Promi
 }
 
 // Helper function to add a new level
-export async function addLevelOnchain(description: string, difficulty: number): Promise<string> {
+export async function addLevelOnchain(nillionUUID: string, difficulty: number): Promise<string> {
     try {
         const txHash = await walletClient.writeContract({
             address: FANTASY_GAME_MASTER_ADDRESS,
             abi: FantasyGameMasterABI,
             functionName: "addLevel",
-            args: [description, difficulty],
+            args: [nillionUUID, difficulty],
         });
         return txHash;
     } catch (error) {

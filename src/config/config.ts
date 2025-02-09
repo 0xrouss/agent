@@ -33,6 +33,12 @@ export interface Config {
         walletId: string;
         walletAddress: Address;
     };
+    nillion: {
+        did: string;
+        publickey: string;
+        secretKey: string;
+        schema: string;
+    };
 }
 
 /**
@@ -60,5 +66,12 @@ export const config: Config = {
         appSecret: process.env.APP_SECRET || "appSecret",
         walletId: process.env.WALLET_ID || "walletId",
         walletAddress: (process.env.WALLET_ADDRESS as Address) || "0xAddress",
+    },
+
+    nillion: {
+        did: process.env.NILLION_DID || "did",
+        publickey: process.env.NILLION_PUBLIC_KEY || "publicKey",
+        secretKey: process.env.NILLION_SECRET_KEY || "secretKey",
+        schema: process.env.NILLION_SCHEMA || "schema",
     },
 };

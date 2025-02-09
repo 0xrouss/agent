@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@privy-io/server-auth": "^1.18.7",
+    "nillion-sv-wrappers": "^1.0.9",
     "openai": "^4.83.0",
     "viem": "^2.22.23"
   }

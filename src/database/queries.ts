@@ -3,13 +3,13 @@ import db from "./db";
 /**
  * Insert a level.
  */
-export function insertLevel(id: number, description: string, difficulty: number) {
+export function insertLevel(id: number, nillionUUID: string, difficulty: number) {
     db.run(
         `
-        INSERT INTO levels (id, description, difficulty)
+        INSERT INTO levels (id, nillionUUID, difficulty)
             VALUES (?, ?, ?);
         `,
-        [id, description, difficulty]
+        [id, nillionUUID, difficulty]
     );
 }
 
@@ -124,13 +124,13 @@ export function finalizeGame(gameId: number) {
 }
 
 /**
- * Fetches the level description from the database.
+ * Fetches the level nillionUUID from the database.
  * @param gameId - The ID of the game.
- * @returns The level description.
+ * @returns The level nillionUUID.
  */
-export async function getLevelDescription(gameId: number): Promise<string> {
+export async function getLevelNillionUUID(gameId: number): Promise<string> {
     const stmt = db.prepare(`
-        SELECT description FROM levels 
+        SELECT nillionUUID FROM levels 
         WHERE id = (
             SELECT level_id FROM assigned_levels
             WHERE game_id = ?
@@ -139,8 +139,8 @@ export async function getLevelDescription(gameId: number): Promise<string> {
         )
     `);
 
-    const level = stmt.get(gameId) as { description: string } | undefined;
-    return level?.description || "Level description not found";
+    const level = stmt.get(gameId) as { nillionUUID: string } | undefined;
+    return level?.nillionUUID || "Level nillionUUID not found";
 }
 
 /**

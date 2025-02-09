@@ -88,7 +88,7 @@ export function startGameCreatedListener(): void {
             }
         },
         onError: (error) => {
-            console.error("Error in PartidaCreated listener:", error);
+            console.error("Error in GameCreated listener:", error);
         },
     });
 }
@@ -112,16 +112,16 @@ export function startLevelCreatedListener(): void {
                 if (!decodedLogs.args) return;
                 const args = decodedLogs.args as unknown as {
                     levelId: bigint;
-                    description: string;
+                    nillionUUID: string;
                     difficulty: bigint;
                 };
-                const { levelId, description, difficulty } = args;
-                console.log(`New LevelCreated event detected: Level ${levelId} - ${description} (Difficulty: ${difficulty})`);
+                const { levelId, nillionUUID, difficulty } = args;
+                console.log(`New LevelCreated event detected: Level ${levelId} - ${nillionUUID} (Difficulty: ${difficulty})`);
 
                 // Forward to the level processor
                 await handleLevelCreated({
                     levelId: Number(levelId),
-                    description,
+                    nillionUUID,
                     difficulty: Number(difficulty),
                 });
             }

@@ -4,12 +4,13 @@ import { sendUpdateInteraction, sendAssignLevel } from "../onchain/txSender";
 import {
     markAssignedLevelCompleted,
     insertInteraction,
-    getLevelDescription,
+    getLevelNillionUUID,
     getRandomLevelByDifficulty,
     insertAssignedLevel,
     incrementLevelsAssigned,
     finalizeGame,
 } from "../database/queries";
+import { getLevelDescription } from "../nillion";
 
 /**
  * Processes an interaction event:
@@ -32,7 +33,8 @@ export async function handleInteraction(interaction: {
         console.log(`Processing interaction ${interaction.interactionId} for player ${interaction.player}...`);
 
         // Fetch the level description
-        const levelDescription = await getLevelDescription(interaction.gameId);
+        const nillionUUID = await getLevelNillionUUID(interaction.gameId);
+        const levelDescription = await getLevelDescription(nillionUUID);
 
         // Evaluate the player's answer using OpenAI
         const evaluationResult = await evaluateLevelAnswer(interaction.assignedLevelIndex, levelDescription, interaction.action);

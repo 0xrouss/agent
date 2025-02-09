@@ -1,5 +1,6 @@
 import { config } from "../config/config";
-import { getGamesByOwner, getLevelDescription } from "../database/queries";
+import { getGamesByOwner, getLevelNillionUUID } from "../database/queries";
+import { getLevelDescription } from "../nillion";
 
 export function startApiServer() {
     Bun.serve({
@@ -20,7 +21,9 @@ export function startApiServer() {
             // NEW: GET /game/:gameId/current-level
             if (req.method === "GET" && url.pathname.match(/\/game\/\d+\/current-level/)) {
                 const gameId = parseInt(url.pathname.split("/")[2]);
-                const description = await getLevelDescription(gameId);
+                const nillionUUID = await getLevelNillionUUID(gameId);
+
+                const description = await getLevelDescription(nillionUUID);
 
                 if (!description) {
                     return new Response("No active level found", { status: 404 });
