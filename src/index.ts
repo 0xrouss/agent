@@ -61,7 +61,7 @@ console.log(`Database path: ${config.database.path}`);
 try {
     startEventListeners();
     startApiServer();
-    startLevelGenerationScheduler();
+    // startLevelGenerationScheduler();
     console.log("📡 Event listeners started successfully");
     console.log("⏰ Level generation scheduler initialized");
     console.log("🏰 Agent is ready to process blockchain events...");
