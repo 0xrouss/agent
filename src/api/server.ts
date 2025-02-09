@@ -6,6 +6,18 @@ export function startApiServer() {
     Bun.serve({
         port: config.api.port || 3000,
         async fetch(req) {
+            // Add CORS headers
+            const corsHeaders = {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            };
+
+            // Handle OPTIONS preflight requests
+            if (req.method === "OPTIONS") {
+                return new Response(null, { headers: corsHeaders });
+            }
+
             const url = new URL(req.url);
 
             // GET /games/:userAddress
@@ -14,7 +26,7 @@ export function startApiServer() {
                 const games = await getGamesByOwner(userAddress);
 
                 return new Response(JSON.stringify(games), {
-                    headers: { "Content-Type": "application/json" },
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
                 });
             }
 
@@ -30,11 +42,14 @@ export function startApiServer() {
                 }
 
                 return new Response(JSON.stringify(description), {
-                    headers: { "Content-Type": "application/json" },
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
                 });
             }
 
-            return new Response("Not Found", { status: 404 });
+            return new Response("Not Found", { 
+                status: 404,
+                headers: corsHeaders 
+            });
         },
     });
 
