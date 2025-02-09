@@ -88,9 +88,6 @@ web_modules/
 
 # Optional REPL history
 
-# Database
-
-localGameMaster.db
 
 .node_repl_history
 

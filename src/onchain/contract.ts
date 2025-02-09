@@ -1,8 +1,7 @@
-import { createPublicClient, createWalletClient, http } from "viem";
+import { createWalletClient, http } from "viem";
 import { arbitrumSepolia } from "viem/chains";
 import { config } from "../config/config";
 import { FantasyGameMasterABI } from "../ABI/FantasyGameMaster";
-import { privateKeyToAccount } from "viem/accounts";
 import { createNonceManager, jsonRpc } from "viem/nonce";
 import { PrivyClient } from "@privy-io/server-auth";
 import { createViemAccount } from "@privy-io/server-auth/viem";
