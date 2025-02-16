@@ -1,6 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// Minimal ERC20 interface for token payment
+interface IERC20 {
+    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function transfer(address recipient, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
+}
+
 /**
  * @title FantasyGameMaster
  * @dev Contract that manages games and levels for a fantasy game.
@@ -33,12 +40,12 @@ contract FantasyGameMaster {
      * @dev Represents a game.
      *      - owner: the address of the player who owns the game.
      *      - isActive: indicates whether the game is still active or has ended.
-     *      - levelsAssigned: number of levels that have been assigned (but not necessarily completed).
+     *      - currentLevel: indicates the current level the player is on.
      */
     struct Game {
         address owner;
         bool isActive;
-        uint256 levelsAssigned;
+        uint256 currentLevel;
     }
 
     /**
@@ -81,6 +88,12 @@ contract FantasyGameMaster {
 
     // Address of the Game Master (AI) with special permissions
     address public gameMaster;
+
+    // Gone token contract for interaction fee payment
+    IERC20 public goneToken;
+
+    // Paused state variable indicates if the contract is paused after a winner is declared
+    bool public paused;
 
     // =========================================================================
     // Events
@@ -136,8 +149,9 @@ contract FantasyGameMaster {
     // Constructor
     // =========================================================================
 
-    constructor(address _gameMaster) {
+    constructor(address _gameMaster, address _goneToken) {
         gameMaster = _gameMaster;
+        goneToken = IERC20(_goneToken);
     }
 
     // =========================================================================
@@ -146,6 +160,11 @@ contract FantasyGameMaster {
 
     modifier onlyGameMaster() {
         require(msg.sender == gameMaster, "Only the Game Master can call this function");
+        _;
+    }
+
+    modifier whenNotPaused() {
+        require(!paused, "Contract is paused due to a winner");
         _;
     }
 
@@ -218,14 +237,17 @@ contract FantasyGameMaster {
     /**
      * @dev Creates a new game for the player invoking this function.
      */
-    function createGame() external returns (uint256) {
+    function createGame() external whenNotPaused returns (uint256) {
+        uint256 fee = 10000 * (10 ** 18);
+        require(goneToken.transferFrom(msg.sender, address(this), fee), "Token payment failed");
+
         currentGameId++;
         uint256 newGameId = currentGameId;
 
         games[newGameId] = Game({
             owner: msg.sender,
             isActive: true,
-            levelsAssigned: 0
+            currentLevel: 0
         });
 
         playerGames[msg.sender].push(newGameId);
@@ -253,7 +275,7 @@ contract FantasyGameMaster {
         }));
 
         // Increase the counter of assigned levels
-        game.levelsAssigned++;
+        game.currentLevel++;
 
         uint256 assignedIndex = gameLevels[_gameId].length - 1;
         emit LevelAssigned(_gameId, assignedIndex, _levelId);
@@ -267,14 +289,20 @@ contract FantasyGameMaster {
      *      that has not yet been completed. For more flexibility, you could allow choosing
      *      the index of the AssignedLevel.
      */
+<<<<<<< Updated upstream
     function createInteraction(uint256 _gameId, string calldata _interactionNillionUUID) external {
+=======
+    function createInteraction(uint256 _gameId, string calldata _interactionNillionUUID) external whenNotPaused {
+>>>>>>> Stashed changes
         Game memory game = games[_gameId];
         require(game.isActive, "The game is not active");
         require(game.owner == msg.sender, "You are not the owner of this game");
-        require(game.levelsAssigned > 0, "No levels have been assigned yet");
+        require(game.currentLevel > 0, "No levels have been assigned yet");
+        uint256 fee = 1000 * (10 ** 18);
+        require(goneToken.transferFrom(msg.sender, address(this), fee), "Token payment failed");
 
         // Last assigned level (by index)
-        uint256 currentAssignedIndex = game.levelsAssigned - 1;
+        uint256 currentAssignedIndex = game.currentLevel - 1;
 
         // Create the interaction
         Interaction memory newInteraction = Interaction({
@@ -341,7 +369,7 @@ contract FantasyGameMaster {
 
         // If the player has been assigned 10 levels (and just completed the tenth),
         // end the game.
-        if (game.levelsAssigned >= 10) {
+        if (game.currentLevel >= 10) {
             endGame(_gameId);
         }
     }
@@ -355,6 +383,12 @@ contract FantasyGameMaster {
 
         game.isActive = false;
         emit GameEnded(_gameId, game.owner);
+        uint256 balance = goneToken.balanceOf(address(this));
+        if (balance > 0) {
+            require(goneToken.transfer(game.owner, balance), "Transfer to winner failed");
+        }
+        // Pause the contract so no new games or interactions can be created
+        paused = true;
     }
 
     // =========================================================================
@@ -417,19 +451,19 @@ contract FantasyGameMaster {
         returns (
             uint256[] memory gameIds,
             bool[] memory isActive,
-            uint256[] memory levelsAssigned
+            uint256[] memory currentLevels
         )
     {
         uint256 length = playerGames[_player].length;
         gameIds = playerGames[_player];
         isActive = new bool[](length);
-        levelsAssigned = new uint256[](length);
+        currentLevels = new uint256[](length);
         
         for (uint256 i = 0; i < length; i++) {
             uint256 id = gameIds[i];
             Game storage game = games[id];
             isActive[i] = game.isActive;
-            levelsAssigned[i] = game.levelsAssigned;
+            currentLevels[i] = game.currentLevel;
         }
     }
 
@@ -441,10 +475,17 @@ contract FantasyGameMaster {
     function getLastAssignedLevelNillionUUID(uint256 _gameId) external view returns (string memory nillionUUID) {
         Game storage game = games[_gameId];
         require(game.isActive, "The game is not active");
+<<<<<<< Updated upstream
         require(game.levelsAssigned > 0, "No levels have been assigned yet");
 
         // Get the index of the last assigned level
         uint256 lastAssignedIndex = game.levelsAssigned - 1;
+=======
+        require(game.currentLevel > 0, "No levels have been assigned yet");
+
+        // Get the index of the last assigned level
+        uint256 lastAssignedIndex = game.currentLevel - 1;
+>>>>>>> Stashed changes
         AssignedLevel storage lastAssignedLevel = gameLevels[_gameId][lastAssignedIndex];
 
         // Retrieve the nillionUUID from the LevelData
