@@ -289,11 +289,7 @@ contract FantasyGameMaster {
      *      that has not yet been completed. For more flexibility, you could allow choosing
      *      the index of the AssignedLevel.
      */
-<<<<<<< Updated upstream
-    function createInteraction(uint256 _gameId, string calldata _interactionNillionUUID) external {
-=======
     function createInteraction(uint256 _gameId, string calldata _interactionNillionUUID) external whenNotPaused {
->>>>>>> Stashed changes
         Game memory game = games[_gameId];
         require(game.isActive, "The game is not active");
         require(game.owner == msg.sender, "You are not the owner of this game");
@@ -475,17 +471,10 @@ contract FantasyGameMaster {
     function getLastAssignedLevelNillionUUID(uint256 _gameId) external view returns (string memory nillionUUID) {
         Game storage game = games[_gameId];
         require(game.isActive, "The game is not active");
-<<<<<<< Updated upstream
-        require(game.levelsAssigned > 0, "No levels have been assigned yet");
-
-        // Get the index of the last assigned level
-        uint256 lastAssignedIndex = game.levelsAssigned - 1;
-=======
         require(game.currentLevel > 0, "No levels have been assigned yet");
 
         // Get the index of the last assigned level
         uint256 lastAssignedIndex = game.currentLevel - 1;
->>>>>>> Stashed changes
         AssignedLevel storage lastAssignedLevel = gameLevels[_gameId][lastAssignedIndex];
 
         // Retrieve the nillionUUID from the LevelData
