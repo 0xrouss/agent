@@ -24,7 +24,7 @@ export async function writeToNodes(data) {
     return newId;
 }
 
-export async function getLevelDescription(uuid) {
+export async function getDescription(uuid) {
     const collection = await getCollection();
 
     const decryptedCollectionData = await collection.readFromNodes({

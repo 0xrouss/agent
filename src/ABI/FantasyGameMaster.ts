@@ -80,7 +80,7 @@ export const FantasyGameMasterABI: Abi = [
             {
                 indexed: false,
                 internalType: "string",
-                name: "action",
+                name: "interactionNillionUUID",
                 type: "string",
             },
         ],

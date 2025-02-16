@@ -33,9 +33,9 @@ export function startInteractionListener(): void {
                     interactionId: bigint;
                     player: Hex;
                     assignedLevelIndex: bigint;
-                    action: string;
+                    interactionNillionUUID: string;
                 };
-                const { gameId, interactionId, player, assignedLevelIndex, action } = args;
+                const { gameId, interactionId, player, assignedLevelIndex, interactionNillionUUID } = args;
                 console.log(`New InteractionCreated event detected: Game ${gameId}, Interaction ${interactionId}, Player ${player}`);
 
                 // Forward to the interaction processor
@@ -44,7 +44,7 @@ export function startInteractionListener(): void {
                     interactionId: Number(interactionId),
                     player,
                     assignedLevelIndex: Number(assignedLevelIndex),
-                    action,
+                    interactionNillionUUID,
                 });
             }
         },
