@@ -1,16 +1,8 @@
 // src/gameMaster/interactionProcessor.ts
 import { evaluateLevelAnswer } from "./openaiService";
 import { sendUpdateInteraction, sendAssignLevel } from "../onchain/txSender";
-import {
-    markAssignedLevelCompleted,
-    insertInteraction,
-    getLevelNillionUUID,
-    getRandomLevelByDifficulty,
-    insertAssignedLevel,
-    incrementLevelsAssigned,
-    finalizeGame,
-} from "../database/queries";
-import { getLevelDescription } from "../nillion";
+import { getDescription, getRandomLevelByDifficulty } from "../nillion";
+import { getLastAssignedLevelNillionUUID } from "../onchain/contract"; // Import the new function
 
 /**
  * Processes an interaction event:
@@ -18,75 +10,76 @@ import { getLevelDescription } from "../nillion";
  *  - Calls the OpenAI API to get the outcome.
  *  - Parses the AI response.
  *  - Submits a transaction to update the interaction on-chain.
- *  - Updates the local database accordingly.
  *
  * @param interaction The interaction event data.
  */
 export async function handleInteraction(interaction: {
-    gameId: number;
-    interactionId: number;
-    player: string;
-    assignedLevelIndex: number;
-    action: string;
+  gameId: number;
+  interactionId: number;
+  player: string;
+  assignedLevelIndex: number;
+  interactionNillionUUID: string;
 }): Promise<void> {
-    try {
-        console.log(`Processing interaction ${interaction.interactionId} for player ${interaction.player}...`);
+  try {
+    console.log(
+      `Processing interaction ${interaction.interactionId} for player ${interaction.player}...`
+    );
 
-        // Fetch the level description
-        const nillionUUID = await getLevelNillionUUID(interaction.gameId);
-        const levelDescription = await getLevelDescription(nillionUUID);
+    const interactionDescription = await getDescription(
+      interaction.interactionNillionUUID
+    );
 
-        // Evaluate the player's answer using OpenAI
-        const evaluationResult = await evaluateLevelAnswer(interaction.assignedLevelIndex, levelDescription, interaction.action);
+    const levelNillionUUID = await getLastAssignedLevelNillionUUID(
+      interaction.gameId
+    );
 
-        // Log the evaluation result
-        console.log(`Evaluation result for interaction ${interaction.interactionId}:`, evaluationResult);
+    const levelDescription = await getDescription(levelNillionUUID);
 
-        // Insert the interaction into the database
-        insertInteraction(
-            interaction.gameId,
-            interaction.interactionId,
-            interaction.assignedLevelIndex,
-            interaction.action,
-            evaluationResult.reason,
-            evaluationResult.passed
+    // Evaluate the player's answer using OpenAI
+    const evaluationResult = await evaluateLevelAnswer(
+      interaction.assignedLevelIndex,
+      levelDescription,
+      interactionDescription
+    );
+
+    // Update the interaction on-chain
+    await sendUpdateInteraction(
+      interaction.gameId,
+      interaction.interactionId,
+      evaluationResult.passed,
+      evaluationResult.reason
+    );
+
+    // If the player passed the level, assign a new level with increased difficulty
+    if (evaluationResult.passed) {
+      try {
+        // Calculate next level difficulty (current level index + 2 since index is 0-based)
+        const nextDifficulty = interaction.assignedLevelIndex + 2;
+
+        // Get a random level of the next difficulty
+        const nextLevelId = await getRandomLevelByDifficulty(nextDifficulty);
+
+        // Assign the new level to the game
+        await sendAssignLevel(interaction.gameId, nextLevelId);
+
+        console.log(
+          `Assigned new level with difficulty ${nextDifficulty} to game ${interaction.gameId}`
         );
-
-        // Update the game state based on the evaluation
-        if (evaluationResult.passed) {
-            console.log(`Player ${interaction.player} passed the level!`);
-
-            // Mark completed and update interaction
-            await markAssignedLevelCompleted(interaction.gameId);
-            await sendUpdateInteraction(interaction.gameId, interaction.interactionId, true, evaluationResult.reason);
-
-            // Check for game completion (level 10 passed)
-            if (interaction.assignedLevelIndex === 9) {
-                // Finalize the game
-                await finalizeGame(interaction.gameId);
-                console.log(`Game ${interaction.gameId} completed successfully!`);
-            } else {
-                // Calculate next difficulty and assign level
-                const nextDifficulty = interaction.assignedLevelIndex + 2;
-                const nextLevelId = await getRandomLevelByDifficulty(nextDifficulty);
-
-                // Update both chain and local state
-                await sendAssignLevel(interaction.gameId, nextLevelId);
-                insertAssignedLevel(interaction.gameId, nextLevelId);
-                incrementLevelsAssigned(interaction.gameId);
-
-                console.log(`Assigned level ${nextLevelId} (difficulty ${nextDifficulty}) to game ${interaction.gameId}`);
-            }
-        } else {
-            // Logic for when the player fails the level
-            console.log(`Player ${interaction.player} failed the level: ${evaluationResult.reason}`);
-            // Handle failure (e.g., notify player, update state)
-            // Send the update to the blockchain
-            await sendUpdateInteraction(interaction.gameId, interaction.interactionId, false, evaluationResult.reason);
-        }
-
-        console.log(`Finished processing interaction ${interaction.interactionId}.`);
-    } catch (error) {
-        console.error(`Error processing interaction ${interaction.interactionId}:`, error);
+      } catch (error) {
+        console.error(
+          `Error assigning new level for game ${interaction.gameId}:`,
+          error
+        );
+      }
     }
+
+    console.log(
+      `Interaction ${interaction.interactionId} processed successfully`
+    );
+  } catch (error) {
+    console.error(
+      `Error processing interaction ${interaction.interactionId}:`,
+      error
+    );
+  }
 }

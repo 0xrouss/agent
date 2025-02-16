@@ -19,7 +19,6 @@ Frontend: https://github.com/0xrouss/agentic
 -   **Smart Contracts**: Solidity
 -   **Backend**: Bun (TypeScript runtime)
 -   **AI**: OpenAI API
--   **Database**: SQLite
 -   **Secret Management**: Nillion Network
 
 ## Getting Started
@@ -92,7 +91,6 @@ The agent will:
 src/
 ├── api/               # REST API server
 ├── config/            # Configuration management
-├── database/          # Database setup and queries
 ├── gameMaster/        # Game logic processors
 ├── nillion/           # Nillion integration
 ├── onchain/           # Blockchain interaction

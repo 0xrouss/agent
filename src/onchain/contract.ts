@@ -1,4 +1,4 @@
-import { createWalletClient, http } from "viem";
+import { createWalletClient, http, publicActions } from "viem";
 import { arbitrumSepolia } from "viem/chains";
 import { config } from "../config/config";
 import { FantasyGameMasterABI } from "../ABI/FantasyGameMaster";
@@ -28,7 +28,7 @@ export const walletClient = createWalletClient({
     chain: arbitrumSepolia,
     transport: http(),
     account: account,
-});
+}).extend(publicActions);
 
 // Helper function to call the smart contract's updateInteraction function
 export async function updateInteractionOnchain(gameId: number, interactionId: number, levelPassed: boolean, result: string): Promise<string> {
@@ -74,6 +74,22 @@ export async function addLevelOnchain(nillionUUID: string, difficulty: number): 
         return txHash;
     } catch (error) {
         console.error("Error adding global level onchain:", error);
+        throw error;
+    }
+}
+
+// Helper function to get the nillionUUID of the last assigned level for a game
+export async function getLastAssignedLevelNillionUUID(gameId: number): Promise<string> {
+    try {
+        const result = await walletClient.readContract({
+            address: FANTASY_GAME_MASTER_ADDRESS,
+            abi: FantasyGameMasterABI,
+            functionName: "getLastAssignedLevelNillionUUID",
+            args: [gameId],
+        });
+        return result as string; // Cast the result to string
+    } catch (error) {
+        console.error("Error fetching last assigned level nillionUUID:", error);
         throw error;
     }
 }

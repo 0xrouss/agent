@@ -45,14 +45,14 @@ contract FantasyGameMaster {
      * @dev Represents an interaction within a level:
      *      - player: the address of the player.
      *      - assignedLevelIndex: index of the level (within the game) where the interaction occurs.
-     *      - action: the action taken by the player.
+     *      - interactionNillionUUID: the Nillion UUID representing the interaction.
      *      - result: description of the result, provided by the Game Master.
      *      - isComplete: indicates whether the Game Master has processed this interaction.
      */
     struct Interaction {
         address player;
         uint256 assignedLevelIndex;
-        string action;
+        string interactionNillionUUID;
         string result;
         bool isComplete;
     }
@@ -112,7 +112,7 @@ contract FantasyGameMaster {
         uint256 interactionId,
         address indexed player,
         uint256 assignedLevelIndex,
-        string action
+        string interactionNillionUUID
     );
 
     /**
@@ -173,6 +173,33 @@ contract FantasyGameMaster {
 
     function getLevelsCount() external view returns (uint256) {
         return levels.length;
+    }
+
+    /**
+     * @dev Returns an array of level IDs that match the specified difficulty
+     * @param _difficulty The difficulty level to filter by
+     */
+    function getLevelsByDifficulty(uint256 _difficulty) external view returns (uint256[] memory) {
+        uint256 count = 0;
+        
+        // First pass: count matching levels
+        for (uint256 i = 0; i < levels.length; i++) {
+            if (levels[i].difficulty == _difficulty) {
+                count++;
+            }
+        }
+        
+        // Second pass: populate array
+        uint256[] memory result = new uint256[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < levels.length; i++) {
+            if (levels[i].difficulty == _difficulty) {
+                result[index] = i;
+                index++;
+            }
+        }
+        
+        return result;
     }
 
     function getLevel(uint256 _levelId)
@@ -240,7 +267,7 @@ contract FantasyGameMaster {
      *      that has not yet been completed. For more flexibility, you could allow choosing
      *      the index of the AssignedLevel.
      */
-    function createInteraction(uint256 _gameId, string calldata _action) external {
+    function createInteraction(uint256 _gameId, string calldata _interactionNillionUUID) external {
         Game memory game = games[_gameId];
         require(game.isActive, "The game is not active");
         require(game.owner == msg.sender, "You are not the owner of this game");
@@ -253,7 +280,7 @@ contract FantasyGameMaster {
         Interaction memory newInteraction = Interaction({
             player: msg.sender,
             assignedLevelIndex: currentAssignedIndex,
-            action: _action,
+            interactionNillionUUID: _interactionNillionUUID,
             result: "",
             isComplete: false
         });
@@ -266,7 +293,7 @@ contract FantasyGameMaster {
             interactionId,
             msg.sender,
             currentAssignedIndex,
-            _action
+            _interactionNillionUUID
         );
     }
 
@@ -369,7 +396,7 @@ contract FantasyGameMaster {
         returns (
             address player,
             uint256 assignedLevelIndex,
-            string memory action,
+            string memory interactionNillionUUID,
             string memory result,
             bool isComplete
         )
@@ -378,7 +405,7 @@ contract FantasyGameMaster {
         return (
             inter.player,
             inter.assignedLevelIndex,
-            inter.action,
+            inter.interactionNillionUUID,
             inter.result,
             inter.isComplete
         );
@@ -404,6 +431,25 @@ contract FantasyGameMaster {
             isActive[i] = game.isActive;
             levelsAssigned[i] = game.levelsAssigned;
         }
+    }
+
+    /**
+     * @dev Returns the nillionUUID of the last assigned level for a given gameId.
+     * @param _gameId The ID of the game to query.
+     * @return nillionUUID The nillionUUID of the last assigned level.
+     */
+    function getLastAssignedLevelNillionUUID(uint256 _gameId) external view returns (string memory nillionUUID) {
+        Game storage game = games[_gameId];
+        require(game.isActive, "The game is not active");
+        require(game.levelsAssigned > 0, "No levels have been assigned yet");
+
+        // Get the index of the last assigned level
+        uint256 lastAssignedIndex = game.levelsAssigned - 1;
+        AssignedLevel storage lastAssignedLevel = gameLevels[_gameId][lastAssignedIndex];
+
+        // Retrieve the nillionUUID from the LevelData
+        LevelData storage levelData = levels[lastAssignedLevel.levelId];
+        return levelData.nillionUUID;
     }
 
 }
